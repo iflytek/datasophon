@@ -182,7 +182,7 @@
           "yarn.resourcemanager.scheduler.address.rm2",
           "yarn.resourcemanager.resource-tracker.address.rm1",
           "yarn.resourcemanager.resource-tracker.address.rm2",
-          "yarn.resourcemanager.zk-address",
+          "hadoop.zk.address",
           "yarn.resourcemanager.recovery.enabled",
           "yarn.resourcemanager.store.class",
           "yarn.application.classpath",
@@ -580,7 +580,7 @@
       "defaultValue": "${rm2}:8031"
     },
     {
-      "name": "yarn.resourcemanager.zk-address",
+      "name": "hadoop.zk.address",
       "label": "zk地址",
       "description": "",
       "configType": "ha",
