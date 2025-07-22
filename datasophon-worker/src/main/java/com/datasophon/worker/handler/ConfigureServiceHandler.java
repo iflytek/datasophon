@@ -168,13 +168,6 @@ public class ConfigureServiceHandler {
                     serviceConfig.setValue(IdUtil.simpleUUID());
                     customConfList.add(serviceConfig);
                 }
-                if ("Grafana".equals(serviceRoleName)) {
-                    ServiceConfig clusterIdConfig = new ServiceConfig();
-                    clusterIdConfig.setName("clusterId");
-                    clusterIdConfig.setValue(String.valueOf(clusterId));
-                    clusterIdConfig.setConfigType("map");
-                    customConfList.add(clusterIdConfig);
-                }
                 configs.addAll(customConfList);
                 if (!configs.isEmpty()) {
                     // extra app, package: META, templates

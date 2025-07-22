@@ -70,6 +70,16 @@
        ]
     }]
   },
-  "parameters": [
-  ]
+  "parameters": [{
+     "name": "clusterId",
+     "label": "集群ID",
+     "description": "集群ID",
+     "configType": "map",
+     "required": true,
+     "type": "input",
+     "value": "${clusterId}",
+     "configurableInWizard": false,
+     "hidden": true,
+     "defaultValue": "${clusterId}"
+   }]
 }
