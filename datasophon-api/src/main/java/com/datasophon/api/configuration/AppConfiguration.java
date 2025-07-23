@@ -21,6 +21,7 @@ import com.datasophon.api.interceptor.LocaleChangeInterceptor;
 import com.datasophon.api.interceptor.LoginHandlerInterceptor;
 import com.datasophon.api.interceptor.UserPermissionHandler;
 
+import java.io.IOException;
 import java.util.Locale;
 
 import org.springframework.context.annotation.Bean;
@@ -36,6 +37,11 @@ import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * application configuration
  */
@@ -46,6 +52,7 @@ public class AppConfiguration implements WebMvcConfigurer {
     public static final String LOGIN_PATH_PATTERN = "/login";
     public static final String PATH_PATTERN = "/**";
     public static final String LOCALE_LANGUAGE_COOKIE = "language";
+    public static final String OPTIONS = "OPTIONS";
     
     @Bean
     public CorsFilter corsFilter() {
@@ -55,7 +62,20 @@ public class AppConfiguration implements WebMvcConfigurer {
         config.addAllowedHeader("*");
         UrlBasedCorsConfigurationSource configSource = new UrlBasedCorsConfigurationSource();
         configSource.registerCorsConfiguration(PATH_PATTERN, config);
-        return new CorsFilter(configSource);
+        return new CorsFilter(configSource){
+            @Override
+            protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+                if(OPTIONS.equalsIgnoreCase(request.getMethod())){
+                    response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+                    response.setHeader("Access-Control-Allow-Credentials", "true");
+                    response.setHeader("Access-Control-Allow-Methods", "GET,POST,DELETE,PUT,PATCH,OPTIONS");
+                    response.setHeader("Access-Control-Allow-Headers", request.getHeader("access-control-request-headers"));
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    return;
+                }
+                filterChain.doFilter(request, response);
+            }
+        };
     }
     
     @Bean
