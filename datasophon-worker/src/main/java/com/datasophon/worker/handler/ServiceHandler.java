@@ -56,7 +56,7 @@ public class ServiceHandler {
     
     public ExecResult start(ServiceRoleRunner startRunner, ServiceRoleRunner statusRunner, String decompressPackageName,
                             RunAs runAs) {
-        ExecResult statusResult = execRunner(statusRunner, decompressPackageName, null);
+        ExecResult statusResult = execRunner(statusRunner, decompressPackageName, runAs);
         if (statusResult.getExecResult()) {
             logger.info("{} already started", decompressPackageName);
             ExecResult execResult = new ExecResult();
