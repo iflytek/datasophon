@@ -106,6 +106,7 @@ public class WorkerApplicationServer {
     }
     
     private static void initUserMap(Map<String, String> userMap) {
+        userMap.put("hadoop", HADOOP);
         userMap.put("hdfs", HADOOP);
         userMap.put("yarn", HADOOP);
         userMap.put("hive", HADOOP);
