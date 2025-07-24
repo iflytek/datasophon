@@ -118,9 +118,6 @@ public class ConfigureServiceHandler {
                     if (Constants.CUSTOM.equals(config.getConfigType())) {
                         addToCustomList(iterator, customConfList, config);
                     }
-                    if (!config.isRequired() && !Constants.CUSTOM.equals(config.getConfigType())) {
-                        iterator.remove();
-                    }
                     if (config.getValue() instanceof Boolean || config.getValue() instanceof Integer) {
                         logger.info("Convert boolean and integer to string");
                         config.setValue(config.getValue().toString());
