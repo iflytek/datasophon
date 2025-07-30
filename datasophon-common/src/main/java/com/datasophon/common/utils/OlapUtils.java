@@ -18,18 +18,13 @@
 package com.datasophon.common.utils;
 
 import com.datasophon.common.model.ProcInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class OlapUtils {
     
@@ -37,46 +32,64 @@ public class OlapUtils {
     
     public static ExecResult addFollower(String feMaster, String hostname) {
         ExecResult execResult = new ExecResult();
-        String sql = "ALTER SYSTEM add FOLLOWER \"" + hostname + ":9010\";";
-        logger.info("Add fe to cluster , the sql is {}", sql);
         try {
+            List<ProcInfo> frontends = showFrontends(feMaster);
+            for (ProcInfo proc : frontends) {
+                if (proc.getHostName().equalsIgnoreCase(hostname)) {
+                    logger.info("Follower {} already exists. Skip adding.", hostname);
+                    // 幂等处理：已存在也返回成功
+                    execResult.setExecResult(true);
+                    return execResult;
+                }
+            }
+            String sql = "ALTER SYSTEM add FOLLOWER \"" + hostname + ":9010\";";
+            logger.info("Add fe to cluster , the sql is {}", sql);
             executeSql(feMaster, hostname, sql);
             execResult.setExecResult(true);
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
         }
         return execResult;
     }
     
     public static ExecResult addObserver(String feMaster, String hostname) {
         ExecResult execResult = new ExecResult();
-        String sql = "ALTER SYSTEM add OBSERVER \"" + hostname + ":9010\";";
-        logger.info("Add fe to cluster , the sql is {}", sql);
         try {
+            List<ProcInfo> frontends = showFrontends(feMaster);
+            for (ProcInfo proc : frontends) {
+                if (proc.getHostName().equalsIgnoreCase(hostname)) {
+                    logger.info("Observer {} already exists. Skip adding.", hostname);
+                    execResult.setExecResult(true);
+                    return execResult;
+                }
+            }
+            String sql = "ALTER SYSTEM add OBSERVER \"" + hostname + ":9010\";";
+            logger.info("Add fe to cluster , the sql is {}", sql);
             executeSql(feMaster, hostname, sql);
             execResult.setExecResult(true);
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
         }
         return execResult;
     }
     
     public static ExecResult addBackend(String feMaster, String hostname) {
         ExecResult execResult = new ExecResult();
-        String sql = "ALTER SYSTEM add BACKEND  \"" + hostname + ":9050\";";
-        logger.info("Add be to cluster , the sql is {}", sql);
-        
         try {
+            List<ProcInfo> backends = showBackends(feMaster);
+            for (ProcInfo proc : backends) {
+                if (proc.getHostName().equalsIgnoreCase(hostname)) {
+                    logger.info("Backend {} already exists. Skip adding.", hostname);
+                    execResult.setExecResult(true);
+                    return execResult;
+                }
+            }
+            String sql = "ALTER SYSTEM add BACKEND  \"" + hostname + ":9050\";";
+            logger.info("Add be to cluster , the sql is {}", sql);
             executeSql(feMaster, hostname, sql);
             execResult.setExecResult(true);
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
         }
         return execResult;
     }

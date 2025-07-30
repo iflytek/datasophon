@@ -17,6 +17,8 @@
 
 package com.datasophon.worker.strategy;
 
+import akka.actor.ActorRef;
+import cn.hutool.core.net.NetUtil;
 import com.datasophon.common.command.OlapOpsType;
 import com.datasophon.common.command.OlapSqlExecCommand;
 import com.datasophon.common.command.ServiceRoleOperateCommand;
@@ -25,9 +27,6 @@ import com.datasophon.common.utils.ExecResult;
 import com.datasophon.common.utils.ThrowableUtils;
 import com.datasophon.worker.handler.ServiceHandler;
 import com.datasophon.worker.utils.ActorUtils;
-
-import akka.actor.ActorRef;
-import cn.hutool.core.net.NetUtil;
 
 public class BEHandlerStrategy extends AbstractHandlerStrategy implements ServiceRoleStrategy {
     
@@ -41,30 +40,43 @@ public class BEHandlerStrategy extends AbstractHandlerStrategy implements Servic
         ServiceHandler serviceHandler = new ServiceHandler(command.getServiceName(), command.getServiceRoleName());
         
         if (command.getCommandType().equals(CommandType.INSTALL_SERVICE)) {
-            logger.info("add  be to cluster");
+            logger.info("prepare to add be to cluster before start");
+            try {
+                
+                OlapSqlExecCommand sqlExecCommand = new OlapSqlExecCommand();
+                sqlExecCommand.setFeMaster(command.getMasterHost());
+                sqlExecCommand.setHostName(NetUtil.getLocalhostStr());
+                sqlExecCommand.setOpsType(OlapOpsType.ADD_BE);
+                
+                ActorUtils.getRemoteActor(command.getManagerHost(), "masterNodeProcessingActor")
+                        .tell(sqlExecCommand, ActorRef.noSender());
+                
+                logger.info("add be command sent to master successfully");
+                
+            } catch (Exception e) {
+                logger.error("add backend failed: {}", ThrowableUtils.getStackTrace(e));
+                startResult.setExecResult(false);
+                startResult.setExecOut("Failed to add backend to FE before start.");
+                return startResult;
+            }
             
+            logger.info("starting slave be...");
             startResult = serviceHandler.start(command.getStartRunner(), command.getStatusRunner(),
                     command.getDecompressPackageName(), command.getRunAs());
+            
             if (startResult.getExecResult()) {
-                try {
-                    OlapSqlExecCommand sqlExecCommand = new OlapSqlExecCommand();
-                    sqlExecCommand.setFeMaster(command.getMasterHost());
-                    // 使用IP 否则应用侧使用时需要设置host
-                    sqlExecCommand.setHostName(NetUtil.getLocalhostStr());
-                    sqlExecCommand.setOpsType(OlapOpsType.ADD_BE);
-                    ActorUtils.getRemoteActor(command.getManagerHost(), "masterNodeProcessingActor")
-                            .tell(sqlExecCommand, ActorRef.noSender());
-                } catch (Exception e) {
-                    logger.error("add backend failed {}", ThrowableUtils.getStackTrace(e));
-                }
                 logger.info("slave be start success");
             } else {
                 logger.error("slave be start failed");
             }
+            
         } else {
+            // 非安装类命令，直接启动
             startResult = serviceHandler.start(command.getStartRunner(), command.getStatusRunner(),
                     command.getDecompressPackageName(), command.getRunAs());
         }
+        
         return startResult;
     }
+    
 }

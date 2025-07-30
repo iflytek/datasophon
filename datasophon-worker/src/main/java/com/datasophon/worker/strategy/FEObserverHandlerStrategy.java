@@ -17,6 +17,9 @@
 
 package com.datasophon.worker.strategy;
 
+import akka.actor.ActorRef;
+import cn.hutool.core.net.NetUtil;
+import cn.hutool.json.JSONUtil;
 import com.datasophon.common.command.OlapOpsType;
 import com.datasophon.common.command.OlapSqlExecCommand;
 import com.datasophon.common.command.ServiceRoleOperateCommand;
@@ -29,11 +32,6 @@ import com.datasophon.worker.utils.ActorUtils;
 
 import java.util.ArrayList;
 
-import akka.actor.ActorRef;
-
-import cn.hutool.core.net.NetUtil;
-import cn.hutool.json.JSONUtil;
-
 public class FEObserverHandlerStrategy extends AbstractHandlerStrategy implements ServiceRoleStrategy {
     
     public FEObserverHandlerStrategy(String serviceName, String serviceRoleName) {
@@ -43,10 +41,32 @@ public class FEObserverHandlerStrategy extends AbstractHandlerStrategy implement
     @Override
     public ExecResult handler(ServiceRoleOperateCommand command) {
         ExecResult startResult = new ExecResult();
-        logger.info("FEObserverHandlerStrategy start fe observer" + JSONUtil.toJsonStr(command));
+        logger.info("FEObserverHandlerStrategy start fe observer: {}", JSONUtil.toJsonStr(command));
+        
         ServiceHandler serviceHandler = new ServiceHandler(command.getServiceName(), command.getServiceRoleName());
+        
         if (command.getCommandType() == CommandType.INSTALL_SERVICE) {
-            logger.info("first start  fe observer");
+            logger.info("prepare to add fe observer before start");
+            // 提前发送 add observer 命令
+            try {
+                OlapSqlExecCommand sqlExecCommand = new OlapSqlExecCommand();
+                sqlExecCommand.setFeMaster(command.getMasterHost());
+                sqlExecCommand.setHostName(NetUtil.getLocalhostStr());
+                sqlExecCommand.setOpsType(OlapOpsType.ADD_FE_OBSERVER);
+                
+                ActorUtils.getRemoteActor(command.getManagerHost(), "masterNodeProcessingActor")
+                        .tell(sqlExecCommand, ActorRef.noSender());
+                
+                logger.info("add fe observer command sent to master successfully");
+                
+            } catch (Exception e) {
+                logger.error("add fe observer failed: {}", ThrowableUtils.getStackTrace(e));
+                startResult.setExecResult(false);
+                startResult.setExecOut("Failed to add fe observer before start.");
+                return startResult;
+            }
+            
+            logger.info("starting fe observer...");
             ArrayList<String> commands = new ArrayList<>();
             commands.add("--helper");
             commands.add(command.getMasterHost() + ":9010");
@@ -56,28 +76,23 @@ public class FEObserverHandlerStrategy extends AbstractHandlerStrategy implement
             startRunner.setProgram(command.getStartRunner().getProgram());
             startRunner.setArgs(commands);
             startRunner.setTimeout("60");
+            
             startResult = serviceHandler.start(startRunner, command.getStatusRunner(),
                     command.getDecompressPackageName(), command.getRunAs());
+            
             if (startResult.getExecResult()) {
-                // add observer
-                try {
-                    OlapSqlExecCommand sqlExecCommand = new OlapSqlExecCommand();
-                    sqlExecCommand.setFeMaster(command.getMasterHost());
-                    sqlExecCommand.setHostName(NetUtil.getLocalhostStr());
-                    sqlExecCommand.setOpsType(OlapOpsType.ADD_FE_OBSERVER);
-                    ActorUtils.getRemoteActor(command.getManagerHost(), "masterNodeProcessingActor")
-                            .tell(sqlExecCommand, ActorRef.noSender());
-                } catch (Exception e) {
-                    logger.error("add fe observer failed {}", ThrowableUtils.getStackTrace(e));
-                }
                 logger.info("fe observer start success");
             } else {
                 logger.error("fe observer start failed");
             }
+            
         } else {
+            // 非安装类命令直接启动
             startResult = serviceHandler.start(command.getStartRunner(), command.getStatusRunner(),
                     command.getDecompressPackageName(), command.getRunAs());
         }
+        
         return startResult;
     }
+    
 }
