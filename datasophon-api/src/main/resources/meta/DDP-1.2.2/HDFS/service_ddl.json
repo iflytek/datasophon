@@ -1229,7 +1229,7 @@
       "configType": "custom",
       "required": false,
       "type": "multipleWithKey",
-      "value": [],
+      "value": [{"ipc.client.connect.max.retries":"100"},{"ipc.client.connect.retry.interval":"10000"}],
       "configurableInWizard": true,
       "hidden": false,
       "defaultValue": ""
