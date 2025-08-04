@@ -30,10 +30,10 @@
         <OverViewPage :serviceId="serviceId" />
       </a-tab-pane>
       <a-tab-pane :key="2" tab="实例">
-        <ExampleList ref="ExampleListRef" :serviceId="serviceId" />
+        <ExampleList ref="ExampleListRef" :serviceId="serviceId" :tabKey="tabKey"/>
       </a-tab-pane>
       <a-tab-pane :key="3" tab="配置">
-        <Setting />
+        <Setting :tabKey="tabKey"/>
       </a-tab-pane>
       <a-tab-pane v-if="serviceName === 'YARN'" :key="4" tab="资源配置">
         <Queue />

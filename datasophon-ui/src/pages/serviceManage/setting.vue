@@ -71,6 +71,10 @@ export default {
   components: { CommonTemplate },
   props: {
     steps4Data: Object,
+    tabKey: {
+      type: String,
+      required: true
+    }
   },
   data() {
     return {
@@ -411,6 +415,12 @@ export default {
       });
       return data;
     },
+  },
+  watch: {
+    // 监控 tabKey 的变化
+    tabKey(newVal, oldVal) {
+      this.getServiceRoleType();
+    }
   },
   created() {},
   mounted() {

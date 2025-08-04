@@ -184,6 +184,10 @@ export default {
   name: "exampleList",
   props: {
     serviceId: String,
+    tabKey: {
+      type: String,
+      required: true
+    }
   },
   provide () {
     return {
@@ -635,6 +639,9 @@ export default {
     },
   },
   watch: {
+    tabKey(newVal, oldVal) {
+      this.getServiceRoleType();
+    },
     logsVisible: {
       handler (val) {
         if (val) {
