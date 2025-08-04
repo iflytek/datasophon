@@ -23,7 +23,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ServiceRoleStrategyContext {
-    
+    private static final ServiceRoleStrategy commonStrategy=new CommonHandlerStrategy();
+
+    private static final String commonServiceName="CommonService";
+
     private static final Map<String, ServiceRoleStrategy> strategyMap = new ConcurrentHashMap<>();
     
     private static final Map<String, String> serviceNameMap = new ConcurrentHashMap<>();
@@ -103,13 +106,15 @@ public class ServiceRoleStrategyContext {
         if (StringUtils.isBlank(type)) {
             return null;
         }
-        return strategyMap.get(type);
+        ServiceRoleStrategy strategy=strategyMap.get(type);
+        return (strategy == null) ? commonStrategy : strategy;
     }
     
     public static String getServiceName(String type) {
         if (StringUtils.isBlank(type)) {
             return null;
         }
-        return serviceNameMap.get(type);
+        String name=serviceNameMap.get(type);
+        return (name == null) ? commonServiceName : name;
     }
 }

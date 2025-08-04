@@ -88,7 +88,8 @@ public class ActorUtils {
                 new HostCheckCommand(),
                 actorSystem.dispatcher(),
                 ActorRef.noSender());
-        
+
+        // 角色检测 15s 检测一次
         actorSystem.scheduler().schedule(
                 FiniteDuration.apply(15L, TimeUnit.SECONDS),
                 FiniteDuration.apply(15L, TimeUnit.SECONDS),
