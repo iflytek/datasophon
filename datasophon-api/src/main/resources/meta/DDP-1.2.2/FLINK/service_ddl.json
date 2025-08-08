@@ -10,6 +10,33 @@
   "runAs":"root",
   "roles": [
     {
+      "name": "FlinkHistoryServer",
+      "label": "FlinkHistoryServer",
+      "roleType": "master",
+      "cardinality": "1",
+      "startRunner": {
+        "timeout": "60",
+        "program": "bin/historyserver.sh",
+        "args": [
+          "start"
+        ]
+      },
+      "stopRunner": {
+        "timeout": "600",
+        "program": "bin/historyserver.sh",
+        "args": [
+          "stop"
+        ]
+      },
+      "statusRunner": {
+        "timeout": "600",
+        "program": "bin/status-history-server.sh",
+        "args": [
+          "status","historyserver"
+        ]
+      }
+    },
+    {
       "name": "FlinkClient",
       "label": "FlinkClient",
       "roleType": "client",
@@ -37,6 +64,7 @@
           "security.kerberos.login.keytab",
           "security.kerberos.login.use-ticket-cache",
           "security.kerberos.login.contexts",
+          "historyserver.archive.fs.dir",
           "custom.flink.conf.yaml",
           "classloader.check-leaked-classloader"
         ]
@@ -210,6 +238,17 @@
       "configurableInWizard": true,
       "hidden": true,
       "defaultValue": "Client,KafkaClient"
+    },
+    {
+      "name": "historyserver.archive.fs.dir",
+      "label": "日志路径",
+      "description": "",
+      "required": true,
+      "type": "input",
+      "value": "/tmp",
+      "configurableInWizard": true,
+      "hidden": false,
+      "defaultValue": "/tmp"
     },
     {
       "name": "custom.flink.conf.yaml",
