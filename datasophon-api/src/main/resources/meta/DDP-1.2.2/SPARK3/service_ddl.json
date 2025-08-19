@@ -9,6 +9,31 @@
   "decompressPackageName": "spark-3.1.3",
   "roles": [
     {
+      "name": "SparkHistoryServer",
+      "label": "SparkHistoryServer",
+      "roleType": "master",
+      "cardinality": "1",
+      "startRunner": {
+        "timeout": "60",
+        "program": "sbin/start-history-server.sh",
+        "args": [
+        ]
+      },
+      "stopRunner": {
+        "timeout": "600",
+        "program": "sbin/stop-history-server.sh",
+        "args": [
+        ]
+      },
+      "statusRunner": {
+        "timeout": "600",
+        "program": "sbin/status-history-server.sh",
+        "args": [
+          "status","historyserver"
+        ]
+      }
+    },
+    {
       "name": "SparkClient3",
       "label": "SparkClient3",
       "roleType": "client",
