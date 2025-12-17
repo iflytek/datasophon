@@ -51,11 +51,11 @@ public class MinaUtils {
     
     /** 打开远程会话 */
     public static ClientSession openConnection(String sshHost, Integer sshPort, String sshUser) {
-        SshClient sshClient = SshClient.setUpDefaultClient();
-        sshClient.start();
         ClientSession session = null;
-        String privateKeyPath = System.getProperty("user.home") + Constants.ID_RSA;
-        try {
+        try (SshClient sshClient = SshClient.setUpDefaultClient()) {
+            sshClient.start();
+            String privateKeyPath = System.getProperty("user.home") + Constants.ID_RSA;
+
             String privateKeyContent = new String(Files.readAllBytes(Paths.get(privateKeyPath)));
             session = sshClient.connect(sshUser, sshHost, sshPort).verify().getClientSession();
             session.addPublicKeyIdentity(getKeyPairFromString(privateKeyContent));
@@ -63,6 +63,7 @@ public class MinaUtils {
                 LOG.info("验证失败");
                 return null;
             }
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
