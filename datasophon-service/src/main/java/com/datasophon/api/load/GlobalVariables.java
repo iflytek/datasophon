@@ -16,7 +16,7 @@ public class GlobalVariables {
         return map.get(key);
     }
     
-    public static boolean exists(String key) {
+    public static boolean exists(Integer key) {
         return map.containsKey(key);
     }
 }
